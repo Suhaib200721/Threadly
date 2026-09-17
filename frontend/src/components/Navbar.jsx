@@ -77,6 +77,9 @@ function Navbar() {
                   <Link to="/admin/products" className="admin-link">Catalog</Link>
                 </li>
                 <li>
+                  <Link to="/admin/users" className="admin-link">Users</Link>
+                </li>
+                <li>
                   <Link to="/admin/reviews" className="admin-link">Reviews</Link>
                 </li>
               </>

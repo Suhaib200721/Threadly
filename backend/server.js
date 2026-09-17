@@ -66,9 +66,9 @@ app.use('/api/reviews', reviewRoutes);
 // Admin review routes (Admin review moderation)
 app.use('/api/admin/reviews', adminReviewRoutes);
 
-
-
-
+// General Admin routes (stats, users)
+const adminRoutes = require('./routes/adminRoutes');
+app.use('/api/admin', adminRoutes);
 // Start the server
 const PORT = process.env.PORT || 5000;
 

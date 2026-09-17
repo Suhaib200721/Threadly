@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import AdminLayout from '../components/AdminLayout';
 
 function AdminReviews() {
   const [reviews, setReviews] = useState([]);
@@ -8,6 +9,7 @@ function AdminReviews() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [viewMode, setViewMode] = useState('cards'); // 'cards' or 'table'
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -94,44 +96,61 @@ function AdminReviews() {
   };
 
   return (
-    <div className="admin-orders-page">
+    <AdminLayout>
       <div className="breadcrumb">
         <Link to="/">Home</Link> &rsaquo; <Link to="/admin">Admin</Link> &rsaquo; Customer Reviews
       </div>
 
-      <div className="admin-orders-header">
+      <div className="admin-page-header">
         <div>
           <h1>Customer Reviews Moderation</h1>
-          <p className="admin-orders-subtitle">
-            Inspect all customer feedback across products and remove inappropriate reviews.
+          <p className="admin-page-subtitle">
+            Inspect customer ratings and feedback across products.
           </p>
         </div>
-        <button
-          className="btn-secondary btn-sm"
-          onClick={fetchAdminReviews}
-          disabled={loading}
-        >
-          {loading ? 'Refreshing...' : '↻ Refresh Reviews'}
-        </button>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button
+            type="button"
+            className={`btn-secondary btn-sm ${viewMode === 'cards' ? 'btn-active-toggle' : ''}`}
+            onClick={() => setViewMode('cards')}
+          >
+            Cards View
+          </button>
+          <button
+            type="button"
+            className={`btn-secondary btn-sm ${viewMode === 'table' ? 'btn-active-toggle' : ''}`}
+            onClick={() => setViewMode('table')}
+          >
+            Table View
+          </button>
+          <button
+            type="button"
+            className="btn-secondary btn-sm"
+            onClick={fetchAdminReviews}
+            disabled={loading}
+          >
+            {loading ? 'Refreshing...' : '↻ Refresh'}
+          </button>
+        </div>
       </div>
 
       {/* Summary Metrics */}
-      <div className="admin-stats-grid">
-        <div className="admin-stat-card">
-          <span className="stat-label">Total Reviews</span>
-          <strong className="stat-value">{reviews.length}</strong>
+      <div className="admin-metrics-grid" style={{ marginBottom: '24px' }}>
+        <div className="admin-metric-card">
+          <span className="admin-metric-label">Total Reviews</span>
+          <strong className="admin-metric-number">{reviews.length}</strong>
         </div>
-        <div className="admin-stat-card stat-card-paid">
-          <span className="stat-label">Average Rating</span>
-          <strong className="stat-value">{averageRating > 0 ? averageRating : '5.0'} / 5</strong>
+        <div className="admin-metric-card">
+          <span className="admin-metric-label">Average Rating</span>
+          <strong className="admin-metric-number">{averageRating > 0 ? averageRating : '5.0'} / 5</strong>
         </div>
-        <div className="admin-stat-card stat-card-delivered">
-          <span className="stat-label">5-Star Ratings</span>
-          <strong className="stat-value">{reviews.filter((r) => r.rating === 5).length}</strong>
+        <div className="admin-metric-card">
+          <span className="admin-metric-label">5-Star Ratings</span>
+          <strong className="admin-metric-number">{reviews.filter((r) => r.rating === 5).length}</strong>
         </div>
-        <div className="admin-stat-card stat-card-cancelled">
-          <span className="stat-label">1 &amp; 2-Star Ratings</span>
-          <strong className="stat-value">{reviews.filter((r) => r.rating <= 2).length}</strong>
+        <div className="admin-metric-card">
+          <span className="admin-metric-label">1 &amp; 2-Star Ratings</span>
+          <strong className="admin-metric-number">{reviews.filter((r) => r.rating <= 2).length}</strong>
         </div>
       </div>
 
@@ -178,6 +197,7 @@ function AdminReviews() {
 
         {(searchTerm || selectedRating !== 'All') && (
           <button
+            type="button"
             className="btn-secondary btn-sm btn-clear-filters"
             onClick={() => {
               setSearchTerm('');
@@ -203,8 +223,79 @@ function AdminReviews() {
         <div className="admin-empty-box">
           <h2>No Matching Reviews</h2>
           <p>No reviews match your filter query.</p>
+          <button
+            type="button"
+            className="btn-secondary btn-sm"
+            onClick={() => {
+              setSearchTerm('');
+              setSelectedRating('All');
+            }}
+            style={{ marginTop: '12px' }}
+          >
+            Reset Filters
+          </button>
+        </div>
+      ) : viewMode === 'cards' ? (
+        /* ── CARDS VIEW: EXACTLY MATCHES THREADLY ProductDetails.jsx REVIEWS ── */
+        <div className="reviews-cards-list">
+          <div className="admin-table-count-label" style={{ borderRadius: '8px', border: '1px solid #e0e0e0', marginBottom: '4px' }}>
+            Showing <strong>{filteredReviews.length}</strong> of <strong>{reviews.length}</strong> customer reviews
+          </div>
+
+          {filteredReviews.map((rev) => {
+            const revDate = new Date(rev.createdAt).toLocaleDateString('en-IN', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            });
+
+            return (
+              <div key={rev._id} className="review-item-card">
+                <div className="review-item-header">
+                  <div className="reviewer-info">
+                    <strong className="reviewer-name">{rev.userName}</strong>
+                    {rev.isVerifiedPurchase && (
+                      <span className="verified-purchase-tag">Verified Purchase</span>
+                    )}
+                    {rev.product && (
+                      <span style={{ fontSize: '0.82rem', color: '#666', marginLeft: '6px' }}>
+                        on{' '}
+                        <Link
+                          to={`/product/${rev.product._id}`}
+                          style={{ color: '#111', fontWeight: 600, textDecoration: 'underline' }}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {rev.product.name}
+                        </Link>
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <span className="review-date">{revDate}</span>
+                    <button
+                      type="button"
+                      className="btn-text-danger btn-sm"
+                      onClick={() => handleDeleteReview(rev._id)}
+                      title="Remove inappropriate review"
+                    >
+                      Delete Review
+                    </button>
+                  </div>
+                </div>
+
+                <div className="review-item-rating">
+                  {renderStars(rev.rating)}
+                  <strong className="review-item-title">{rev.title}</strong>
+                </div>
+
+                <p className="review-item-comment">{rev.comment}</p>
+              </div>
+            );
+          })}
         </div>
       ) : (
+        /* ── TABLE VIEW ── */
         <div className="admin-table-container">
           <div className="admin-table-count-label">
             Showing <strong>{filteredReviews.length}</strong> of <strong>{reviews.length}</strong> reviews
@@ -283,7 +374,7 @@ function AdminReviews() {
           </table>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 }
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import AdminLayout from '../components/AdminLayout';
 
 const STATUS_OPTIONS = [
   'All',
@@ -98,19 +99,20 @@ function AdminOrders() {
   };
 
   return (
-    <div className="admin-orders-page">
+    <AdminLayout>
       <div className="breadcrumb">
         <Link to="/">Home</Link> &rsaquo; <Link to="/admin">Admin</Link> &rsaquo; Orders Management
       </div>
 
-      <div className="admin-orders-header">
+      <div className="admin-page-header">
         <div>
-          <h1>Admin Orders Management</h1>
-          <p className="admin-orders-subtitle">
+          <h1>Orders Management</h1>
+          <p className="admin-page-subtitle">
             Manage customer orders, view delivery information, and update shipment statuses.
           </p>
         </div>
         <button
+          type="button"
           className="btn-secondary btn-sm"
           onClick={fetchAdminOrders}
           disabled={loading}
@@ -120,27 +122,27 @@ function AdminOrders() {
         </button>
       </div>
 
-      {/* ── SUMMARY STATS CARDS ──────────────────────────────── */}
-      <div className="admin-stats-grid">
-        <div className="admin-stat-card">
-          <span className="stat-label">Total Orders</span>
-          <strong className="stat-value">{summary.total}</strong>
+      {/* ── SUMMARY STATS CARDS ── */}
+      <div className="admin-metrics-grid" style={{ marginBottom: '24px' }}>
+        <div className="admin-metric-card">
+          <span className="admin-metric-label">Total Orders</span>
+          <strong className="admin-metric-number">{summary.total}</strong>
         </div>
-        <div className="admin-stat-card stat-card-paid">
-          <span className="stat-label">Paid Orders</span>
-          <strong className="stat-value">{summary.paid}</strong>
+        <div className="admin-metric-card">
+          <span className="admin-metric-label">Paid Orders</span>
+          <strong className="admin-metric-number">{summary.paid}</strong>
         </div>
-        <div className="admin-stat-card stat-card-pending">
-          <span className="stat-label">Pending / Processing</span>
-          <strong className="stat-value">{summary.pending}</strong>
+        <div className="admin-metric-card">
+          <span className="admin-metric-label">Pending / Processing</span>
+          <strong className="admin-metric-number">{summary.pending}</strong>
         </div>
-        <div className="admin-stat-card stat-card-delivered">
-          <span className="stat-label">Delivered</span>
-          <strong className="stat-value">{summary.delivered}</strong>
+        <div className="admin-metric-card">
+          <span className="admin-metric-label">Delivered</span>
+          <strong className="admin-metric-number">{summary.delivered}</strong>
         </div>
-        <div className="admin-stat-card stat-card-cancelled">
-          <span className="stat-label">Cancelled</span>
-          <strong className="stat-value">{summary.cancelled}</strong>
+        <div className="admin-metric-card">
+          <span className="admin-metric-label">Cancelled</span>
+          <strong className="admin-metric-number">{summary.cancelled}</strong>
         </div>
       </div>
 
@@ -294,7 +296,7 @@ function AdminOrders() {
           </table>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 }
 

@@ -17,13 +17,7 @@ function AdminRoute({ children }) {
   }
 
   if (!isAdmin) {
-    return (
-      <div className="page-container">
-        <h1>Unauthorized</h1>
-        <p>You do not have permission to view this page.</p>
-        <p className="placeholder-note">This page is for admins only.</p>
-      </div>
-    );
+    return <Navigate to="/" replace />;
   }
 
   return children;

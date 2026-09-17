@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api, { getImageUrl, handleImageErrorWithFallback, FALLBACK_IMAGE } from '../services/api';
+import AdminLayout from '../components/AdminLayout';
 
 const VALID_STATUSES = [
   'Order Placed',
@@ -101,20 +102,20 @@ function AdminOrderDetail() {
 
   if (loading) {
     return (
-      <div className="admin-orders-page">
+      <AdminLayout>
         <div className="breadcrumb">
           <Link to="/">Home</Link> &rsaquo; <Link to="/admin">Admin</Link> &rsaquo; <Link to="/admin/orders">Orders</Link> &rsaquo; Order Details
         </div>
         <div className="admin-loading-box">
           <p>Loading order details...</p>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
   if (error && !order) {
     return (
-      <div className="admin-orders-page">
+      <AdminLayout>
         <div className="breadcrumb">
           <Link to="/">Home</Link> &rsaquo; <Link to="/admin">Admin</Link> &rsaquo; <Link to="/admin/orders">Orders</Link> &rsaquo; Error
         </div>
@@ -125,7 +126,7 @@ function AdminOrderDetail() {
             Back to Orders List
           </Link>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
@@ -138,20 +139,20 @@ function AdminOrderDetail() {
   });
 
   return (
-    <div className="admin-orders-page">
+    <AdminLayout>
       <div className="breadcrumb">
         <Link to="/">Home</Link> &rsaquo; <Link to="/admin">Admin</Link> &rsaquo; <Link to="/admin/orders">Orders</Link> &rsaquo; {order.orderId}
       </div>
 
       {/* Header */}
-      <div className="admin-detail-header">
+      <div className="admin-page-header">
         <div>
           <span className="admin-detail-label">Admin Order Inspection</span>
-          <h1 className="admin-detail-title">{order.orderId}</h1>
-          <p className="admin-detail-date">Placed on {formattedDate}</p>
+          <h1 style={{ margin: '4px 0 2px' }}>{order.orderId}</h1>
+          <p className="admin-page-subtitle">Placed on {formattedDate}</p>
         </div>
 
-        <div className="admin-detail-header-right">
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           <span className="order-payment-badge">Payment: {order.paymentStatus || 'Paid'}</span>
           <span className={`order-status-badge ${getStatusBadgeClass(order.orderStatus)}`}>
             {order.orderStatus}
@@ -316,7 +317,7 @@ function AdminOrderDetail() {
           Back to All Orders
         </Link>
       </div>
-    </div>
+    </AdminLayout>
   );
 }
 
