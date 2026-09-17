@@ -1,30 +1,45 @@
 import axios from 'axios';
 
-// Determine if running in a deployed/production browser environment
-const isProduction =
-  typeof window !== 'undefined' &&
-  window.location.hostname !== 'localhost' &&
-  window.location.hostname !== '127.0.0.1';
+// Render production backend URL
+const RENDER_BACKEND_URL = 'https://threadly-backend-prmf.onrender.com';
+const RENDER_API_URL = `${RENDER_BACKEND_URL}/api`;
+const LOCAL_API_URL = 'http://localhost:5000/api';
 
-// Base API URL: prefer VITE_API_URL, fallback to Render in production, localhost in development
-export const API_URL =
-  import.meta.env.VITE_API_URL ||
-  (isProduction
-    ? 'https://threadly-backend-prmf.onrender.com/api'
-    : 'http://localhost:5000/api');
+// Check if running in a deployed/production environment
+const isProduction =
+  import.meta.env.PROD ||
+  (typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1');
+
+// Determine Base API URL:
+// In production, always use the Render backend URL (unless a custom non-localhost VITE_API_URL is provided).
+// In local development, use VITE_API_URL or default to localhost.
+const resolveApiUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (isProduction) {
+    if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+      return envUrl;
+    }
+    return RENDER_API_URL;
+  }
+  return envUrl || LOCAL_API_URL;
+};
+
+export const API_URL = resolveApiUrl();
 
 // Base backend URL (without trailing /api)
 export const BACKEND_URL =
   API_URL.replace(/\/api\/?$/, '') ||
-  (isProduction
-    ? 'https://threadly-backend-prmf.onrender.com'
-    : 'http://localhost:5000');
+  (isProduction ? RENDER_BACKEND_URL : 'http://localhost:5000');
 
 // Default fallback image
 export const FALLBACK_IMAGE = 'https://placehold.co/500x600/eeeeee/999999.png?text=No+Image';
 
 /**
  * Returns a normalized image URL.
+ * In production, prefixes relative image paths with the Render backend URL
+ * so images load reliably from https://threadly-backend-prmf.onrender.com/images/...
  */
 export const getImageUrl = (imageSrc) => {
   if (!imageSrc) return FALLBACK_IMAGE;
@@ -36,14 +51,17 @@ export const getImageUrl = (imageSrc) => {
   ) {
     return imageSrc;
   }
-  return imageSrc.startsWith('/') ? imageSrc : `/${imageSrc}`;
+  const cleanPath = imageSrc.startsWith('/') ? imageSrc : `/${imageSrc}`;
+  if (isProduction) {
+    return `${BACKEND_URL}${cleanPath}`;
+  }
+  return cleanPath;
 };
 
 /**
  * Robust image error handler:
- * If an image fails to load from the frontend host,
- * automatically attempt loading it directly from the Render backend.
- * If both fail, fall back to the placeholder image.
+ * If an image fails to load, attempt loading directly from the Render backend.
+ * If that also fails, fall back to the placeholder image.
  */
 export const handleImageErrorWithFallback = (e, originalSrc, fallback = FALLBACK_IMAGE) => {
   e.target.onerror = null;
@@ -54,10 +72,7 @@ export const handleImageErrorWithFallback = (e, originalSrc, fallback = FALLBACK
     !originalSrc.startsWith('data:') &&
     !originalSrc.startsWith('blob:')
   ) {
-    const backendBase = BACKEND_URL.startsWith('http')
-      ? BACKEND_URL
-      : 'https://threadly-backend-prmf.onrender.com';
-    const backendUrl = `${backendBase}${originalSrc.startsWith('/') ? '' : '/'}${originalSrc}`;
+    const backendUrl = `${RENDER_BACKEND_URL}${originalSrc.startsWith('/') ? '' : '/'}${originalSrc}`;
     if (e.target.src !== backendUrl) {
       e.target.src = backendUrl;
       return;
