@@ -1,0 +1,3 @@
+# middleware/
+# Custom middleware functions will go here in later phases.
+# Example: authMiddleware.js
