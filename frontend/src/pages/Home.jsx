@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api';
+import api, { getImageUrl, handleImageErrorWithFallback } from '../services/api';
 
 const FALLBACK_IMAGE = 'https://placehold.co/300x380/eeeeee/999999.png?text=No+Image';
 
@@ -69,8 +69,9 @@ function Home() {
         ) : featuredProducts.length > 0 ? (
           <div className="featured-grid">
             {featuredProducts.map((product) => {
-              const displayImage =
-                product.colours?.[0]?.image || product.image || FALLBACK_IMAGE;
+              const rawImage =
+                product.colours?.[0]?.image || product.image || '';
+              const displayImage = getImageUrl(rawImage);
 
               return (
                 <div key={product._id} className="home-product-card">
@@ -80,7 +81,7 @@ function Home() {
                       alt={product.name}
                       className="home-product-img"
                       onError={(e) => {
-                        e.target.src = FALLBACK_IMAGE;
+                        handleImageErrorWithFallback(e, rawImage, FALLBACK_IMAGE);
                       }}
                     />
                   </Link>

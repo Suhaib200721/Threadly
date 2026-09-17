@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from '../services/api';
-
-const FALLBACK_IMAGE = 'https://placehold.co/300x400/eeeeee/999999.png?text=No+Image';
+import api, { getImageUrl, handleImageErrorWithFallback, FALLBACK_IMAGE } from '../services/api';
 
 const TRACKING_STEPS = [
   'Order Placed',
@@ -45,10 +43,6 @@ function OrderDetails() {
     }
   }, [id]);
 
-  const handleImageError = (e) => {
-    e.target.onerror = null;
-    e.target.src = FALLBACK_IMAGE;
-  };
 
   const getStatusBadgeClass = (status) => {
     switch (status) {
@@ -225,10 +219,10 @@ function OrderDetails() {
               {order.items.map((item, idx) => (
                 <div key={idx} className="order-item-detail-row">
                   <img
-                    src={item.image || FALLBACK_IMAGE}
+                    src={getImageUrl(item.image)}
                     alt={`${item.name} - ${item.colour}`}
                     className="order-item-detail-img"
-                    onError={handleImageError}
+                    onError={(e) => handleImageErrorWithFallback(e, item.image)}
                   />
                   <div className="order-item-detail-info">
                     <h4 className="order-item-detail-name">{item.name}</h4>

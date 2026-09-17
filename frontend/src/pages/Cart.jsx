@@ -1,15 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-
-const FALLBACK_IMAGE = 'https://placehold.co/300x400/eeeeee/999999.png?text=No+Image';
+import { getImageUrl, handleImageErrorWithFallback, FALLBACK_IMAGE } from '../services/api';
 
 function Cart() {
   const { cart, updateQuantity, removeFromCart, clearCart, totalItems, subtotal, totalPrice } = useCart();
-
-  const handleImageError = (e) => {
-    e.target.onerror = null;
-    e.target.src = FALLBACK_IMAGE;
-  };
 
   if (cart.length === 0) {
     return (
@@ -51,10 +45,10 @@ function Cart() {
                 {/* Product Image */}
                 <Link to={`/product/${item.productId}`} className="cart-item-img-link">
                   <img
-                    src={item.image || FALLBACK_IMAGE}
+                    src={getImageUrl(item.image)}
                     alt={`${item.name} - ${item.colour}`}
                     className="cart-item-img"
-                    onError={handleImageError}
+                    onError={(e) => handleImageErrorWithFallback(e, item.image)}
                   />
                 </Link>
 

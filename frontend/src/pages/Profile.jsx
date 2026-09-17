@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 function Profile() {
   const { user, token, updateUser, logout, isAdmin } = useAuth();
@@ -34,23 +35,15 @@ function Profile() {
     if (!token) return;
     try {
       setLoadingProfile(true);
-      const res = await fetch('http://localhost:5000/api/users/profile', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      if (res.ok && data.user) {
-        setProfileData(data.user);
-        setName(data.user.name || '');
-        setEmail(data.user.email || '');
-      } else {
-        // Fallback to auth context user
-        if (user) {
-          setProfileData(user);
-          setName(user.name || '');
-          setEmail(user.email || '');
-        }
+      const res = await api.get('/users/profile');
+      if (res.data?.user) {
+        setProfileData(res.data.user);
+        setName(res.data.user.name || '');
+        setEmail(res.data.user.email || '');
+      } else if (user) {
+        setProfileData(user);
+        setName(user.name || '');
+        setEmail(user.email || '');
       }
     } catch (err) {
       console.error('Fetch profile error:', err);
@@ -84,31 +77,20 @@ function Profile() {
 
     try {
       setProfileLoading(true);
-      const res = await fetch('http://localhost:5000/api/users/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim().toLowerCase(),
-        }),
+      const res = await api.put('/users/profile', {
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setProfileError(data.message || 'Failed to update profile.');
-        return;
-      }
-
+      const data = res.data;
       setProfileSuccess(data.message || 'Profile updated successfully.');
-      setProfileData(data.user);
-      updateUser(data.user); // Synchronize context and localStorage
+      if (data.user) {
+        setProfileData(data.user);
+        updateUser(data.user); // Synchronize context and localStorage
+      }
     } catch (err) {
       console.error('Update profile error:', err);
-      setProfileError('A network error occurred. Please try again.');
+      setProfileError(err.response?.data?.message || 'A network error occurred. Please try again.');
     } finally {
       setProfileLoading(false);
     }
@@ -138,34 +120,21 @@ function Profile() {
 
     try {
       setPasswordLoading(true);
-      const res = await fetch('http://localhost:5000/api/users/change-password', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-          confirmPassword,
-        }),
+      const res = await api.put('/users/change-password', {
+        currentPassword,
+        newPassword,
+        confirmPassword,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setPasswordError(data.message || 'Failed to update password.');
-        return;
-      }
-
-      setPasswordSuccess('Password changed successfully.');
+      const data = res.data;
+      setPasswordSuccess(data.message || 'Password changed successfully.');
       // Clear password form fields
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
       console.error('Change password error:', err);
-      setPasswordError('A network error occurred. Please try again.');
+      setPasswordError(err.response?.data?.message || 'A network error occurred. Please try again.');
     } finally {
       setPasswordLoading(false);
     }

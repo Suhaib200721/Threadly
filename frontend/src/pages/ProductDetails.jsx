@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from '../services/api';
+import api, { getImageUrl, handleImageErrorWithFallback, BACKEND_URL, FALLBACK_IMAGE } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
-
-const FALLBACK_IMAGE = 'https://placehold.co/500x600/eeeeee/999999.png?text=No+Image';
 
 function ProductDetails() {
   const { id } = useParams(); // get the product ID from the URL
@@ -98,8 +96,7 @@ function ProductDetails() {
   }, [id, isLoggedIn]);
 
   const handleImageError = (e) => {
-    e.target.onerror = null;
-    e.target.src = FALLBACK_IMAGE;
+    handleImageErrorWithFallback(e, selectedColour?.image);
   };
 
   const getColorHex = (name) => {
@@ -146,7 +143,26 @@ function ProductDetails() {
   const cleanShirtImage = async (imageSrc) => {
     if (!imageSrc) return imageSrc;
     try {
-      const res = await fetch(imageSrc);
+      let resolvedSrc = getImageUrl(imageSrc);
+      let res;
+      try {
+        res = await fetch(resolvedSrc);
+      } catch {
+        res = null;
+      }
+
+      if ((!res || !res.ok) && !resolvedSrc.startsWith('http')) {
+        try {
+          res = await fetch(`${BACKEND_URL}${imageSrc.startsWith('/') ? imageSrc : '/' + imageSrc}`);
+        } catch {
+          res = null;
+        }
+      }
+
+      if (!res || !res.ok) {
+        return resolvedSrc;
+      }
+
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
 
@@ -543,7 +559,7 @@ function ProductDetails() {
               src={
                 isCustomNameProduct && (cleanedImageCache.current[selectedColour?.name] || cleanedImageSrc)
                   ? (cleanedImageCache.current[selectedColour?.name] || cleanedImageSrc)
-                  : (selectedColour ? selectedColour.image : FALLBACK_IMAGE)
+                  : getImageUrl(selectedColour?.image)
               }
               alt={`${product.name} - ${selectedColour?.name}`}
               className="product-detail-img"

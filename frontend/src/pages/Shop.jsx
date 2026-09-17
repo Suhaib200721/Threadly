@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api';
+import api, { getImageUrl, handleImageErrorWithFallback } from '../services/api';
 
 // Fallback image shown if the product image fails to load
 const FALLBACK_IMAGE = 'https://placehold.co/300x380/eeeeee/999999.png?text=No+Image';
@@ -57,8 +57,7 @@ function ProductCard({ product }) {
   const [selectedColour, setSelectedColour] = useState(product.colours && product.colours.length > 0 ? product.colours[0] : null);
 
   const handleImageError = (e) => {
-    e.target.onerror = null;
-    e.target.src = FALLBACK_IMAGE;
+    handleImageErrorWithFallback(e, selectedColour?.image, FALLBACK_IMAGE);
   };
 
   const stockLabel =
@@ -77,7 +76,7 @@ function ProductCard({ product }) {
       <Link to={`/product/${product._id}`}>
         <div className="product-card-img-wrap">
           <img
-            src={selectedColour ? selectedColour.image : FALLBACK_IMAGE}
+            src={selectedColour ? getImageUrl(selectedColour.image) : FALLBACK_IMAGE}
             alt={`${product.name} - ${selectedColour ? selectedColour.name : 'Unknown'}`}
             className="product-card-img"
             onError={handleImageError}

@@ -3,6 +3,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const connectDB = require('./config/db');
 
 // Route files
@@ -26,6 +27,9 @@ connectDB();
 // Middleware
 app.use(cors());           // Allow requests from the frontend
 app.use(express.json());   // Parse JSON request bodies
+
+// Serve product images statically
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
 // Test route - used to verify the API is working
 app.get('/api/test', (req, res) => {

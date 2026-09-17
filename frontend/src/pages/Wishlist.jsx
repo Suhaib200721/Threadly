@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
-
-const FALLBACK_IMAGE = 'https://placehold.co/500x600/eeeeee/999999.png?text=No+Image';
+import { getImageUrl, handleImageErrorWithFallback, FALLBACK_IMAGE } from '../services/api';
 
 function Wishlist() {
   const { wishlist, loadingWishlist, removeFromWishlist } = useWishlist();
@@ -115,7 +114,8 @@ function Wishlist() {
 
             const selectedSize = selectedSizes[product._id] || '';
             const feedback = feedbackMessages[product._id];
-            const displayImage = product.colours?.[0]?.image || product.image || FALLBACK_IMAGE;
+            const rawImage = product.colours?.[0]?.image || product.image;
+            const displayImage = getImageUrl(rawImage);
 
             return (
               <div key={item._id || product._id} className="wishlist-card">
@@ -137,9 +137,7 @@ function Wishlist() {
                     src={displayImage}
                     alt={product.name}
                     className="wishlist-card-img"
-                    onError={(e) => {
-                      e.target.src = FALLBACK_IMAGE;
-                    }}
+                    onError={(e) => handleImageErrorWithFallback(e, rawImage)}
                   />
                 </Link>
 

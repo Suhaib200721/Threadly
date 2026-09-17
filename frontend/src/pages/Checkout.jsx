@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
-
-const FALLBACK_IMAGE = 'https://placehold.co/300x400/eeeeee/999999.png?text=No+Image';
+import api, { getImageUrl, handleImageErrorWithFallback, FALLBACK_IMAGE } from '../services/api';
 
 // Helper to ensure Razorpay checkout script is loaded
 const loadRazorpayScript = () => {
@@ -51,10 +49,6 @@ function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [upiSubmitted, setUpiSubmitted] = useState(false);
 
-  const handleImageError = (e) => {
-    e.target.onerror = null;
-    e.target.src = FALLBACK_IMAGE;
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -628,9 +622,10 @@ function Checkout() {
               <div className="checkout-upi-box">
                 <div className="checkout-upi-qr-wrapper">
                   <img
-                    src="/images/upi_qr.jpg"
+                    src={getImageUrl('/images/upi_qr.jpg')}
                     alt="UPI QR Code"
                     className="checkout-upi-qr-img"
+                    onError={(e) => handleImageErrorWithFallback(e, '/images/upi_qr.jpg')}
                   />
                 </div>
 
@@ -677,10 +672,10 @@ function Checkout() {
               {cart.map((item) => (
                 <div key={item.id} className="checkout-item-row">
                   <img
-                    src={item.image || FALLBACK_IMAGE}
+                    src={getImageUrl(item.image)}
                     alt={`${item.name} - ${item.colour}`}
                     className="checkout-item-img"
-                    onError={handleImageError}
+                    onError={(e) => handleImageErrorWithFallback(e, item.image)}
                   />
                   <div className="checkout-item-details">
                     <p className="checkout-item-name">{item.name}</p>
