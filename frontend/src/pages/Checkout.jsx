@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import api, { getImageUrl, handleImageErrorWithFallback, FALLBACK_IMAGE } from '../services/api';
@@ -20,8 +20,9 @@ const loadRazorpayScript = () => {
 };
 
 function Checkout() {
+  const navigate = useNavigate();
   const { cart, totalItems, subtotal, totalPrice, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, isLoggedIn } = useAuth();
 
   // Delivery details form state
   const [formData, setFormData] = useState({
@@ -33,6 +34,16 @@ function Checkout() {
     state: '',
     pincode: '',
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        fullName: prev.fullName || user.name || '',
+        email: prev.email || user.email || '',
+      }));
+    }
+  }, [user]);
 
   // Validation errors state
   const [errors, setErrors] = useState({});
@@ -120,6 +131,11 @@ function Checkout() {
 
   const handlePayNow = async (e) => {
     e.preventDefault();
+
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: '/checkout', message: 'Please login to place your order.' } });
+      return;
+    }
 
     if (!validateForm()) {
       return;
@@ -293,6 +309,11 @@ function Checkout() {
 
   const handleUpiPaid = (e) => {
     if (e) e.preventDefault();
+
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: '/checkout', message: 'Please login to place your order.' } });
+      return;
+    }
 
     if (!validateForm()) {
       return;

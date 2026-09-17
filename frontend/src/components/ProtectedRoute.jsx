@@ -1,10 +1,11 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 // Wraps a page that only logged-in users can see.
 // If not logged in → redirect to /login
 function ProtectedRoute({ children }) {
   const { isLoggedIn, loading } = useAuth();
+  const location = useLocation();
 
   // Wait until we have checked localStorage before deciding
   if (loading) {
@@ -12,7 +13,17 @@ function ProtectedRoute({ children }) {
   }
 
   if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
+    const isCheckout = location.pathname === '/checkout';
+    return (
+      <Navigate
+        to="/login"
+        state={{
+          from: location.pathname,
+          message: isCheckout ? 'Please login to place your order.' : undefined,
+        }}
+        replace
+      />
+    );
   }
 
   return children;

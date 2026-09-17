@@ -5,16 +5,16 @@ const {
   createPaymentOrder,
   verifyPayment,
 } = require('../controllers/paymentController');
-const { optionalAuth } = require('../middleware/authMiddleware');
+const { protect } = require('../middleware/authMiddleware');
 
 // GET /api/payment/key
 router.get('/key', getRazorpayKey);
 
-// POST /api/payment/create-order
-router.post('/create-order', optionalAuth, createPaymentOrder);
+// POST /api/payment/create-order — requires customer login
+router.post('/create-order', protect, createPaymentOrder);
 
-// POST /api/payment/verify
-router.post('/verify', optionalAuth, verifyPayment);
+// POST /api/payment/verify — requires customer login
+router.post('/verify', protect, verifyPayment);
 
 module.exports = router;
 

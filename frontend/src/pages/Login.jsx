@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+
+  const infoMessage = location.state?.message;
 
   // Form fields
   const [email, setEmail] = useState('');
@@ -34,9 +37,11 @@ function Login() {
       // Save token and user in context + localStorage
       login(user, token);
 
-      // Redirect based on role
+      // Redirect based on role or previous location
       if (user.role === 'admin') {
         navigate('/admin');
+      } else if (location.state?.from) {
+        navigate(location.state.from);
       } else {
         navigate('/');
       }
@@ -55,6 +60,24 @@ function Login() {
       <div className="form-card">
         <h1>Login</h1>
         <p className="form-subtitle">Welcome back to THREADLY</p>
+
+        {/* Info message (e.g. Please login to place your order.) */}
+        {infoMessage && (
+          <div
+            style={{
+              backgroundColor: '#f9f9f9',
+              border: '1px solid #111',
+              color: '#111',
+              padding: '10px 14px',
+              borderRadius: '4px',
+              marginBottom: '18px',
+              fontSize: '0.9rem',
+              textAlign: 'center',
+            }}
+          >
+            {infoMessage}
+          </div>
+        )}
 
         {/* Error message */}
         {error && <p className="form-error">{error}</p>}
