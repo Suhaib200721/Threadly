@@ -25,50 +25,58 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(cors());           // Allow requests from the frontend
-app.use(express.json());   // Parse JSON request bodies
+app.use(cors());
+app.use(express.json());
 
 // Serve product images statically
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
-// Test route - used to verify the API is working
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'THREADLY API is working' });
+// Root route
+app.get('/', (req, res) => {
+  res.send('THREADLY Backend API is running');
 });
 
-// Auth routes (register, login, me)
+// API test route
+app.get('/api/test', (req, res) => {
+  res.json({
+    message: 'THREADLY API is working'
+  });
+});
+
+// Auth routes
 app.use('/api/auth', authRoutes);
 
 // User profile & account routes
 app.use('/api/users', userRoutes);
 
-// Wishlist routes (Saved products)
+// Wishlist routes
 app.use('/api/wishlist', wishlistRoutes);
 
-// Product routes (CRUD — admin protected)
+// Product routes
 app.use('/api/products', productRoutes);
 
-// Category routes (CRUD — admin protected)
+// Category routes
 app.use('/api/categories', categoryRoutes);
 
-// Payment routes (Razorpay orders & verification)
+// Payment routes
 app.use('/api/payment', paymentRoutes);
 
-// Order routes (Customer order history & tracking)
+// Customer order routes
 app.use('/api/orders', orderRoutes);
 
-// Admin order routes (Admin order management & status updates)
+// Admin order routes
 app.use('/api/admin/orders', adminOrderRoutes);
 
-// Review routes (Customer reviews & ratings)
+// Customer review routes
 app.use('/api/reviews', reviewRoutes);
 
-// Admin review routes (Admin review moderation)
+// Admin review routes
 app.use('/api/admin/reviews', adminReviewRoutes);
 
-// General Admin routes (stats, users)
+// General admin routes
 const adminRoutes = require('./routes/adminRoutes');
 app.use('/api/admin', adminRoutes);
+
 // Start the server
 const PORT = process.env.PORT || 5000;
 
