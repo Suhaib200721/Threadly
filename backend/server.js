@@ -31,9 +31,47 @@ app.use(express.json());
 // Serve product images statically
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
-// Root route
+// Root route — simple HTML status page
 app.get('/', (req, res) => {
-  res.send('THREADLY Backend API is running');
+  res.send(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>THREADLY Backend API</title>
+  <style>
+    body { font-family: monospace; padding: 40px; background: #fff; color: #111; }
+    h1 { font-size: 1.6rem; margin-bottom: 8px; }
+    p { margin: 4px 0; }
+    ul { margin-top: 8px; padding-left: 20px; line-height: 1.9; }
+    hr { margin: 20px 0; border: none; border-top: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h1>THREADLY Backend API</h1>
+  <hr />
+  <p><strong>Status:</strong> Running</p>
+  <p><strong>Server:</strong> Express.js</p>
+  <p><strong>Database:</strong> MongoDB</p>
+  <hr />
+  <p><strong>Available API Routes:</strong></p>
+  <ul>
+    <li>/api/auth</li>
+    <li>/api/products</li>
+    <li>/api/categories</li>
+    <li>/api/payment</li>
+    <li>/api/orders</li>
+    <li>/api/admin/orders</li>
+    <li>/api/reviews</li>
+    <li>/api/admin/reviews</li>
+    <li>/api/users</li>
+    <li>/api/wishlist</li>
+  </ul>
+  <hr />
+  <p>Backend API is running successfully.</p>
+</body>
+</html>
+  `);
 });
 
 // API test route
