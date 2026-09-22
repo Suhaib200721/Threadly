@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
+import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
@@ -24,6 +25,16 @@ import Orders from './pages/Orders';
 import OrderDetails from './pages/OrderDetails';
 import './index.css';
 
+// Redirects already-logged-in users away from /login and /register
+function PublicOnlyRoute({ children }) {
+  const { isLoggedIn, loading } = useAuth();
+  if (loading) return <p style={{ textAlign: 'center', padding: '40px' }}>Loading...</p>;
+  if (isLoggedIn) return <Navigate to="/" replace />;
+  return children;
+}
+
+
+
 function App() {
   return (
     // AuthProvider gives auth state (user, token, login, logout) to all pages
@@ -36,10 +47,15 @@ function App() {
 
           {/* Page routes */}
           <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/cart" element={<Cart />} />
+            {/* Public-only routes — redirect to home if already logged in */}
+            <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
+            <Route path="/register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
+
+            {/* Protected routes — require login */}
+            <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+            <Route path="/shop" element={<ProtectedRoute><Shop /></ProtectedRoute>} />
+            <Route path="/product/:id" element={<ProtectedRoute><ProductDetails /></ProtectedRoute>} />
+            <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
             <Route
               path="/checkout"
               element={
@@ -48,11 +64,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-
-            {/* Product detail page — public */}
-            <Route path="/product/:id" element={<ProductDetails />} />
 
             {/* Protected customer routes — only logged-in users */}
             <Route
